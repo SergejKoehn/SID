@@ -11,6 +11,8 @@
 #define SID_VOICE_NUM_REGS  7
 #define SID_FILTER_NUM_REGS 4
 
+typedef unsigned char VoiceRegisters[SID_VOICE_NUM_REGS];
+
 class SID
 {
 public:
@@ -29,7 +31,7 @@ public:
       
       SID           *sid;
       unsigned char  id;
-      unsigned char  regs[SID_VOICE_NUM_REGS];
+      VoiceRegisters regs;
       
     public:
       enum eWaveform {
@@ -57,13 +59,16 @@ public:
       void setRingMode(bool ringMode);
       void setTest(bool test);
       void setWaveform(eWaveform waveForm);
-      void setADSR(unsigned char attack,unsigned char decay,unsigned char Sustain,unsigned char release);
+      void setADSR(unsigned char attack,unsigned char decay,unsigned char sustain,unsigned char release);
       void setAttack(unsigned char attack);
       void setDecay(unsigned char decay);
       void setSustain(unsigned char sustain);
       void setRelease(unsigned char release);
       
-      Voice(unsigned char id, SID *sid);
+      void getRegs(VoiceRegisters *regs);
+      void setRegs(VoiceRegisters *regs);
+      
+      void create(SID *sid,unsigned char id);
   };
 
   class Filter
@@ -98,12 +103,12 @@ public:
       void setMode(unsigned char modes);
       void setVolume(unsigned char volume);
       
-      Filter(SID *sid);
+      void create(SID *sid);
   };
   
 public:
-  Voice  *voices[3];
-  Filter *filter;
+  Voice  voices[3];
+  Filter filter;
   
 public:
   virtual void writeRegister(unsigned char address, unsigned char value);
