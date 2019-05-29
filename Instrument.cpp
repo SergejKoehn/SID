@@ -4,6 +4,8 @@
  * Created: 24.05.2019 09:25:18
  *  Author: koehn
  */ 
+#include <math.h>
+
 #include "Instrument.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,16 +21,81 @@ void Instrument::LFO::reset()
 {
 }
 
-void Instrument::LFO::create(Type type, unsigned long range, unsigned int offset, unsigned int clockFreq)
+void Instrument::LFO::create(Type type, unsigned long amplitude, unsigned int offset, unsigned int samplingRate)
 {
+  this->type        = type;
+  this->amplitude   = amplitude;
+  this->offset      = offset;
+  this->samplingRate= samplingRate;
+  this->pos         = 0;
+  this->normValue   = 0.0;
 }
 
 void Instrument::LFO::setFreq(unsigned int freq)
 {
+  frequence= freq;
+  period   = (unsigned int)((float)samplingRate * 1.0 / frequence);
 }
 
 void Instrument::LFO::clock()
 {
+  if ( pos > period )
+    pos= 0;
+
+  unsigned int half= period / 2;
+
+  switch (type)
+  {
+    case Type_Sinus:
+    {
+      float piPos= (float)((float)pos * ( 2.0 * 3.14159265 / period ) );
+      normValue= (float) ( sin(piPos) * 0.5 + 0.5 );
+      break;
+    }
+
+    case Type_Triangle:
+    {
+      float m= (float)(2.0 / (float)period);
+
+      if ( pos < half )
+        normValue= pos * m;
+      else
+        normValue= (float)( pos * ( -1.0 * m ) + 2.0 );
+
+      break;
+    }
+
+    case Type_Sawtooth:
+    {
+      float m= (float) ( 1.0 / (float)period );
+
+      normValue= pos * m;
+
+      break;
+    }
+
+    case Type_InvSawtooth:
+    {
+      float m= (float) ( 1.0 / (float)period );
+
+      normValue= (float) ( pos * ( -1.0 * m ) + 1.0 );
+
+      break;
+    }
+
+    case Type_Pulse:
+      if ( pos < half )
+        normValue= 1.0;
+      else
+        normValue= 0.0;
+      break;
+
+    default:
+      break;
+  }
+
+  pos++;
+
 }
 
 void Instrument::LFO::setValue(unsigned int value)
@@ -37,10 +104,24 @@ void Instrument::LFO::setValue(unsigned int value)
 
 int Instrument::LFO::getValue()
 {
-  return (int)(( normValue * range ) + offset );
+  return (int)(( normValue * amplitude ) + offset );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Instrument::Control::Control()
+{
+  lfo= 0;
+}
+
+void Instrument::Control::switchLFO(int on)
+{
+  if ( on != 0 )
+    lfo= new LFO();
+  else
+  if ( lfo != 0 )
+    delete lfo;
+}
+
 Instrument::LFO *Instrument::Control::getLFO()
 {
   return lfo;
@@ -49,17 +130,17 @@ Instrument::LFO *Instrument::Control::getLFO()
 void Instrument::Control::setValue(unsigned int value)
 {
   if ( lfo != 0 )
-  lfo->setValue(value);
+    lfo->setValue(value);
   else
-  this->value= value;
+    this->value= value;
 }
 
 unsigned int Instrument::Control::getValue()
 {
   if ( lfo != 0 )
-  return lfo->getValue();
+    return lfo->getValue();
   else
-  return this->value;
+    return this->value;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

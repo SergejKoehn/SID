@@ -34,15 +34,18 @@ public:
   
     protected:
       Type          type;
-      unsigned int  range;
-      unsigned int  offset;
-      unsigned int  clockFreq;
+      unsigned int  amplitude;
+      int           offset;
+      unsigned int  samplingRate;
+      unsigned int  frequence;
+      unsigned int  period;
+      unsigned int  pos;
       float         normValue;
   
     public:
       void  reset();
 
-      void  create(Type type, unsigned long range, unsigned int offset, unsigned int clockFreq);
+      void  create(Type type, unsigned long amplitude, unsigned int offset, unsigned int samplingRate);
   
       void  setFreq(unsigned int freq);
       void  clock();
@@ -70,9 +73,12 @@ public:
       unsigned int  value;
       
     public:
+      void switchLFO(int on);
       LFO *getLFO();
       void setValue(unsigned int value);  
       unsigned int getValue();
+
+      Control();
   };
   
 protected:
