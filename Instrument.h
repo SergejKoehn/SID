@@ -9,8 +9,8 @@
 #ifndef INSTRUMENT_H_
 #define INSTRUMENT_H_
 
-#include "SID.h"
-  
+#include "SIDIF.h"
+
 class Instrument
 {
 public:
@@ -19,12 +19,19 @@ public:
     const unsigned int freq;
     const char         name[3];
   };
+
+  enum ControlType {
+    ControlType_Frequency= 0,
+    ControlType_PWM      = 1,
+    ControlType_Shape    = 2
+  };
   
   ///////////////////////////////////////////////////////////////////////
   class LFO
   {
     public:
     enum Type {
+      Type_None,
       Type_Sinus,
       Type_Triangle,
       Type_Sawtooth,
@@ -34,25 +41,23 @@ public:
   
     protected:
       Type          type;
-      unsigned int  amplitude;
-      int           offset;
-      unsigned int  samplingRate;
       unsigned int  frequence;
       unsigned int  period;
       unsigned int  pos;
       float         normValue;
   
     public:
-      void  reset();
-
-      void  create(Type type, unsigned long amplitude, unsigned int offset, unsigned int samplingRate);
+      void  create(Type type);
   
-      void  setFreq(unsigned int freq);
+      void  setFreq(unsigned int freq, unsigned int samplingRate);
+
+      void  sync();
       void  clock();
 
-      void setValue(unsigned int value);  
-      int getValue();
-  
+      float getValue();
+
+      void  reset();
+
       LFO();
       virtual ~LFO();
   };  
@@ -62,27 +67,46 @@ public:
   {
     public:
       enum Type {
-        Type_Frequency= 0,
-        Type_PWM      = 1,
-        Type_Shape    = 2
+        Type_None,
+        Type_Lfo,
+        Type_Random,
+        Type_List
       };
-    
+
     protected:
       Type          type;
+      unsigned int  samplingRate;
+
       LFO          *lfo;
-      unsigned int  value;
+
+      int           amplitude;
+      int           offset;
+      int           value;
       
     public:
-      void switchLFO(int on);
-      LFO *getLFO();
-      void setValue(unsigned int value);  
-      unsigned int getValue();
+      void setAmplitude(int amplitude);
+      void setSamplingRate(unsigned int samplingRate);
+      void setOffset(int offset);
+
+      void setLFO(LFO::Type type);
+      void setLFOFrequence(unsigned int frequence);
+
+      void setRandom();
+      void setList();
+
+      void sync();
+      void clock();
+
+      inline bool isActive() { return (type != Type_None); }
+      inline int  getValue() { return value; }
+
+      void reset();
 
       Control();
   };
   
 protected:
-  SID           *sid;
+  SIDIF         *sidif;
   unsigned char  voice;
   Control        controls[3];
   static Key     keys[12];
@@ -95,14 +119,16 @@ public:
   static unsigned int  calcFreqNum  (unsigned long freq);  
   
 public:
-  void activate(SID *sid, unsigned char voice);
+  void activate(SIDIF *sidif, unsigned char voice);
   void deactivate();
- 
-  Control *getControl(Control::Type type);
+
+  SIDIF::Voice *getVoice();
+  Control *getControl(ControlType type);
 
   void noteOn (unsigned char note);
   void noteOff();
   
+  void sync();
   void clock();
   
   Instrument();

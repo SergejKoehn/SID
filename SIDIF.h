@@ -1,19 +1,19 @@
 /*
- * SID.h
+ * SIDIF.h
  *
  * Created: 22.05.2019 10:13:38
  *  Author: koehn
  */ 
 
-#ifndef SID_H_
-#define SID_H_
+#ifndef SIDIF_H_
+#define SIDIF_H_
 
 #define SID_VOICE_NUM_REGS  7
 #define SID_FILTER_NUM_REGS 4
 
 typedef unsigned char VoiceRegisters[SID_VOICE_NUM_REGS];
 
-class SID
+class SIDIF
 {
 public:
   class Voice
@@ -29,7 +29,7 @@ public:
         Register_SystainRelease = 6,  
       };
       
-      SID           *sid;
+      SIDIF         *sidif;
       unsigned char  id;
       VoiceRegisters regs;
       
@@ -68,13 +68,13 @@ public:
       void getRegs(VoiceRegisters *regs);
       void setRegs(VoiceRegisters *regs);
       
-      void create(SID *sid,unsigned char id);
+      void create(SIDIF *sidif,unsigned char id);
   };
 
   class Filter
   {
     protected:
-      SID          *sid;
+      SIDIF        *sidif;
       unsigned char regs[SID_FILTER_NUM_REGS];
       
       enum eRegister{
@@ -90,7 +90,7 @@ public:
         Mode_LowPass = 0x01,
         Mode_BandPass= 0x02,
         Mode_HighPass= 0x04,
-        Mode_Off3    = 0x08,
+        Mode_Off     = 0x08,
       };
       
     protected:
@@ -103,7 +103,7 @@ public:
       void setMode(unsigned char modes);
       void setVolume(unsigned char volume);
       
-      void create(SID *sid);
+      void create(SIDIF *sidif);
   };
   
 public:
@@ -111,9 +111,8 @@ public:
   Filter filter;
   
 public:
-  virtual void writeRegister(unsigned char address, unsigned char value);
-  SID();
+  virtual void writeRegister(unsigned char address, unsigned char value)= 0;
+  SIDIF();
 };
 
-
-#endif /* SID_H_ */
+#endif /* SIDIF_H_ */
